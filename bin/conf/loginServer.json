@@ -1,0 +1,15 @@
+{
+	"LogLevel": "debug",
+	"LogPath": "",
+
+	"TCPAddr": "localhost:20001",
+	"MaxConnNum": 20000,
+
+	"MongodbAddr": "localhost",
+	"MongodbSessionNum": 100,
+
+	"ServerName": "login",
+	"ListenAddr": "localhost:30001",
+	"ConnAddrs": {"world": "localhost:31001"},
+	"PendingWriteNum": 100
+}
