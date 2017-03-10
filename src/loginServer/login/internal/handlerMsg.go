@@ -2,13 +2,17 @@ package internal
 
 import (
 	"reflect"
-	"loginServer/msg"
+	"common/msg"
+	lmsg "loginServer/msg"
 	"github.com/name5566/leaf/gate"
 	"github.com/name5566/leaf/cluster"
-	"frontServer/db/mongodb/accountC"
+	"loginServer/db/mongodb/accountC"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 func handleMsg(m interface{}, h interface{}) {
+	lmsg.Processor.SetRouter(m, ChanRPC)
 	skeleton.RegisterChanRPC(reflect.TypeOf(m), h)
 }
 
@@ -21,10 +25,24 @@ func handleLogin(args []interface{}) {
 	agent := args[1].(gate.Agent)
 
 	sendMsg := &msg.L2C_Login{}
+	if recvMsg.Name == "" {
+		sendMsg.Err = "account name is null"
+		agent.WriteMsg(sendMsg)
+		return
+	}
+
 	skeleton.Go(func() {
-		account, err := accountC.HasAccount(recvMsg.UserName)
+		account, err := accountC.GetAccount(recvMsg.Name)
+		if err == mgo.ErrNotFound {
+			account = &accountC.AccountData{Id: bson.NewObjectId(), Name: recvMsg.Name, Password: recvMsg.Password}
+			err = accountC.CreateAccount(account)
+		}
+
 		if err != nil {
 			sendMsg.Err = err.Error()
+			return
+		} else if account.Password != recvMsg.Password {
+			sendMsg.Err = "password is error"
 			return
 		}
 

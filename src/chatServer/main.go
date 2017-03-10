@@ -4,11 +4,21 @@ import (
 	"common"
 	"github.com/name5566/leaf"
 	lconf "github.com/name5566/leaf/conf"
-	"worldServer/conf"
-	"worldServer/center"
+	"chatServer/conf"
+	"os"
+	"github.com/name5566/leaf/log"
+	"chatServer/center"
 )
 
 func main() {
+	argsLen := len(os.Args)
+	if argsLen < 2 {
+		log.Fatal("os args of len(%v) less than 2", argsLen)
+	}
+
+	confFileName := os.Args[1]
+	conf.Init(confFileName)
+
 	lconf.LogLevel = conf.Server.LogLevel
 	lconf.LogPath = conf.Server.LogPath
 	lconf.LogFlag = conf.LogFlag

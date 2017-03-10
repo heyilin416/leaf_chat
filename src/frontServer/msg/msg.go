@@ -2,21 +2,18 @@ package msg
 
 import (
 	"github.com/name5566/leaf/network/json"
+	"common/msg"
 )
 
 var (
 	Processor = json.NewProcessor()
 )
 
-type C2F_CheckLogin struct {
-	Token string
-}
-
-type F2C_CheckLogin struct {
-	Err string
-}
-
 func init() {
-	Processor.Register(&C2F_CheckLogin{})
-	Processor.Register(&F2C_CheckLogin{})
+	Processor.Register(&msg.C2F_CheckLogin{})
+	Processor.Register(&msg.F2C_CheckLogin{})
+	Processor.Register(&msg.C2F_CreateUser{})
+	Processor.Register(&msg.F2C_CreateUser{})
+	Processor.Register(&msg.C2F_EnterRoom{})
+	Processor.Register(&msg.F2C_EnterRoom{})
 }

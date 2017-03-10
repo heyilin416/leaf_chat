@@ -1,0 +1,12 @@
+{
+	"LogLevel": "debug",
+	"LogPath": "",
+
+	"MongodbAddr": "localhost",
+	"MongodbSessionNum": 100,
+
+	"ServerName": "chat1",
+	"ListenAddr": "localhost:32001",
+	"ConnAddrs": {"world": "localhost:31001"},
+	"PendingWriteNum": 100
+}

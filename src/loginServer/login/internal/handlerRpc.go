@@ -6,17 +6,20 @@ import (
 	"crypto/md5"
 	"fmt"
 	"math/rand"
-	"encoding/gob"
+	"github.com/name5566/leaf/cluster"
 )
 
 var (
 	tokenMap = map[string]bson.ObjectId{}
 )
 
-func init() {
-	gob.Register(bson.NewObjectId())
+func handleRpc(id interface{}, f interface{}) {
+	cluster.SetRoute(id, ChanRPC)
+	skeleton.RegisterChanRPC(id, f)
+}
 
-	skeleton.RegisterChanRPC("CheckToken", CheckToken)
+func init() {
+	handleRpc("CheckToken", CheckToken)
 }
 
 func createToken(id bson.ObjectId) string {

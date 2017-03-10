@@ -1,11 +1,11 @@
 package main
 
 import (
+	"common"
 	"github.com/name5566/leaf"
 	lconf "github.com/name5566/leaf/conf"
 	"frontServer/conf"
 	"frontServer/gate"
-	"frontServer/cluster"
 	"os"
 	"github.com/name5566/leaf/log"
 	"frontServer/center"
@@ -30,7 +30,7 @@ func main() {
 	lconf.ConnAddrs = conf.Server.ConnAddrs
 	lconf.PendingWriteNum = conf.Server.PendingWriteNum
 
-	cluster.Init()
+	common.Init()
 
 	leaf.Run(
 		gate.Module,

@@ -3,28 +3,43 @@ package accountC
 import (
 	"gopkg.in/mgo.v2/bson"
 	"loginServer/db/mongodb"
+	"gopkg.in/mgo.v2"
+	lmongodb "github.com/name5566/leaf/db/mongodb"
 )
 
-type Account struct {
+type AccountData struct {
 	Id       bson.ObjectId `bson:"_id"`
-	UserName string
+	Name     string
 	Password string
 }
 
-func HasAccount(userName string) (*Account, error) {
+func init() {
 	session := mongodb.Context.Ref()
 	defer mongodb.Context.UnRef(session)
 
-	result := &Account{}
-	collection := session.DB("login").C("account")
-	err := collection.Find(bson.M{"username": userName}).One(result)
+	GetAccountCollection(session).EnsureIndex(mgo.Index{
+		Key:    []string{"name"},
+		Unique: true,
+		Sparse: true,
+	})
+}
+
+func GetAccountCollection(session *lmongodb.Session) *mgo.Collection {
+	return session.DB("login").C("account")
+}
+
+func GetAccount(name string) (*AccountData, error) {
+	session := mongodb.Context.Ref()
+	defer mongodb.Context.UnRef(session)
+
+	result := &AccountData{}
+	err := GetAccountCollection(session).Find(bson.M{"name": name}).One(result)
 	return result, err
 }
 
-func CreateAccount(account *Account) error {
+func CreateAccount(account *AccountData) error {
 	session := mongodb.Context.Ref()
 	defer mongodb.Context.UnRef(session)
 
-	collection := session.DB("login").C("account")
-	return collection.Insert(account)
+	return GetAccountCollection(session).Insert(account)
 }
