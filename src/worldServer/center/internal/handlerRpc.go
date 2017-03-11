@@ -3,13 +3,16 @@ package internal
 import (
 	"github.com/name5566/leaf/cluster"
 	"github.com/name5566/leaf/log"
-	"github.com/pkg/errors"
+	"errors"
+	"gopkg.in/mgo.v2/bson"
+	"math"
 )
 
 var (
-	frontInfoMap = map[string]*FrontInfo{}
-	chatInfoMap  = map[string]*ChatInfo{}
-	roomInfoMap  = map[string]*RoomInfo{}
+	frontInfoMap    = map[string]*FrontInfo{}
+	chatInfoMap     = map[string]*ChatInfo{}
+	roomInfoMap     = map[string]*RoomInfo{}
+	accountFrontMap = map[bson.ObjectId]*FrontInfo{}
 )
 
 type FrontInfo struct {
@@ -45,6 +48,7 @@ func init() {
 	handleRpc("UpdateChatInfo", UpdateChatInfo)
 	handleRpc("GetRoomInfo", GetRoomInfo)
 	handleRpc("DestroyRoom", DestroyRoom)
+	handleRpc("AccountOffline", AccountOffline)
 }
 
 func NewServerAgent(args []interface{}) {
@@ -57,7 +61,7 @@ func NewServerAgent(args []interface{}) {
 			maxClientCount := results[1].(int)
 			clientAddr := results[2].(string)
 			frontInfoMap[serverName] = &FrontInfo{serverName: serverName, clientCount: clientCount,
-				maxClientCount: maxClientCount, clientAddr: clientAddr}
+				maxClientCount:                               maxClientCount, clientAddr: clientAddr}
 
 			if len(chatInfoMap) > 0 {
 				serverInfoMap := map[string]string{}
@@ -101,11 +105,16 @@ func CloseServerAgent(args []interface{}) {
 }
 
 func GetBestFrontInfo(args []interface{}) (addr interface{}, err error) {
+	accountId := args[0].(bson.ObjectId)
+
+	var ok bool
 	var frontInfo *FrontInfo
-	minClientCount := 1<<31 - 1
-	for _, _frontInfo := range frontInfoMap {
-		if _frontInfo.clientCount < minClientCount && _frontInfo.clientCount < _frontInfo.maxClientCount {
-			frontInfo = _frontInfo
+	if frontInfo, ok = accountFrontMap[accountId]; !ok {
+		minClientCount := math.MaxInt32
+		for _, _frontInfo := range frontInfoMap {
+			if _frontInfo.clientCount < minClientCount && _frontInfo.clientCount < _frontInfo.maxClientCount {
+				frontInfo = _frontInfo
+			}
 		}
 	}
 
@@ -113,6 +122,8 @@ func GetBestFrontInfo(args []interface{}) (addr interface{}, err error) {
 		err = errors.New("No front server to alloc")
 	} else {
 		addr = frontInfo.clientAddr
+		accountFrontMap[accountId] = frontInfo
+		log.Debug("%v account ask front info", accountId)
 	}
 	return
 }
@@ -144,7 +155,7 @@ func GetRoomInfo(args []interface{}) (serverName interface{}, err error) {
 		serverName = roomInfo.serverName
 	} else {
 		var chatInfo *ChatInfo
-		minClientCount := 1<<31 - 1
+		minClientCount := math.MaxInt32
 		for _, _chatInfo := range chatInfoMap {
 			if _chatInfo.clientCount < minClientCount {
 				chatInfo = _chatInfo
@@ -166,5 +177,13 @@ func DestroyRoom(args []interface{}) {
 	if _, ok := roomInfoMap[roomName]; ok {
 		delete(roomInfoMap, roomName)
 		log.Debug("%v room is destroy", roomName)
+	}
+}
+
+func AccountOffline(args []interface{}) {
+	accountId := args[0].(bson.ObjectId)
+	if _, ok := accountFrontMap[accountId]; ok {
+		delete(accountFrontMap, accountId)
+		log.Debug("%v account is offline", accountId)
 	}
 }

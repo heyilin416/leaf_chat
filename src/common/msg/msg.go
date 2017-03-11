@@ -19,11 +19,11 @@ type L2C_Login struct {
 	Err       string
 	Id        bson.ObjectId
 	FrontAddr string
-	Token     string
+	Token     bson.ObjectId
 }
 
 type C2F_CheckLogin struct {
-	Token string
+	Token bson.ObjectId
 }
 
 type F2C_CheckLogin struct {

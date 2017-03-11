@@ -1,4 +1,4 @@
-package userC
+package userDB
 
 import (
 	"gopkg.in/mgo.v2/bson"
@@ -17,29 +17,29 @@ func init() {
 	session := mongodb.Context.Ref()
 	defer mongodb.Context.UnRef(session)
 
-	GetUserCollection(session).EnsureIndex(mgo.Index{
+	getCollection(session).EnsureIndex(mgo.Index{
 		Key:    []string{"name"},
 		Unique: true,
 		Sparse: true,
 	})
 }
 
-func GetUserCollection(session *lmongodb.Session) *mgo.Collection {
+func getCollection(session *lmongodb.Session) *mgo.Collection {
 	return session.DB("game").C("user")
 }
 
-func GetUser(AccountId bson.ObjectId) (*UserData, error) {
+func Get(AccountId bson.ObjectId) (*UserData, error) {
 	session := mongodb.Context.Ref()
 	defer mongodb.Context.UnRef(session)
 
 	result := &UserData{}
-	err := GetUserCollection(session).Find(bson.M{"accountid": AccountId}).One(result)
+	err := getCollection(session).Find(bson.M{"accountid": AccountId}).One(result)
 	return result, err
 }
 
-func CreateUser(user *UserData) error {
+func Create(user *UserData) error {
 	session := mongodb.Context.Ref()
 	defer mongodb.Context.UnRef(session)
 
-	return GetUserCollection(session).Insert(user)
+	return getCollection(session).Insert(user)
 }

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"common/msg"
 	"chatClient/conf"
-	"github.com/pkg/errors"
+	"errors"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -29,7 +29,7 @@ func init() {
 
 func login(args []interface{}) (ret interface{}, err error) {
 	ret = ""
-	if len(args) < 2 {
+	if len(args) < 3 {
 		err = errors.New("args len is less than 2")
 		return
 	}
@@ -49,7 +49,7 @@ func login(args []interface{}) (ret interface{}, err error) {
 
 func enterRoom(args []interface{}) (ret interface{}, err error) {
 	ret = ""
-	if len(args) < 1 {
+	if len(args) < 2 {
 		err = errors.New("args len is less than 1")
 		return
 	}

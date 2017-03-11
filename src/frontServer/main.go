@@ -29,6 +29,7 @@ func main() {
 	lconf.ListenAddr = conf.Server.ListenAddr
 	lconf.ConnAddrs = conf.Server.ConnAddrs
 	lconf.PendingWriteNum = conf.Server.PendingWriteNum
+	lconf.HeartBeatInterval = conf.HeartBeatInterval
 
 	common.Init()
 

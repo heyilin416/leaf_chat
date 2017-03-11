@@ -24,6 +24,7 @@ func (m *Module) OnInit() {
 		LenMsgLen:       conf.LenMsgLen,
 		LittleEndian:    conf.LittleEndian,
 		Processor:       msg.Processor,
-		AgentChanRPC:	 center.ChanRPC,
+		AgentChanRPC:    center.ChanRPC,
+		EndAgentRun:     EndAgentRun,
 	}
 }
