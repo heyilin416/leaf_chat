@@ -7,20 +7,25 @@ import (
 	"github.com/name5566/leaf/chanrpc"
 )
 
-func handleRpc(id interface{}, f interface{}) {
+func handleRpc(id interface{}, f interface{}, isExtRet bool) {
 	cluster.SetRoute(id, ChanRPC)
-	skeleton.RegisterChanRPC(id, f)
+	if isExtRet {
+		ChanRPC.RegisterExtRet(id, f)
+	} else {
+		ChanRPC.Register(id, f)
+	}
 }
 
 func init() {
-	handleRpc("CheckToken", CheckToken)
+	handleRpc("CheckToken", CheckToken, true)
 }
 
 func CheckToken(args []interface{}) {
 	tokenId := args[0].(bson.ObjectId)
-	retFunc := args[1].(chanrpc.GetExternalRetFunc)()
+	frontName := args[1].(string)
+	retFunc := args[2].(chanrpc.ExtRetFunc)
 	go func() {
-		accountId, err := tokenDB.Check(tokenId)
+		accountId, err := tokenDB.Check(tokenId, frontName)
 		retFunc(accountId, err)
 	}()
 }

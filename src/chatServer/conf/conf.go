@@ -16,4 +16,8 @@ var (
 
 	// cluster conf
 	HeartBeatInterval = 5
+
+	// room
+	MaxRoomMsgLen       = 50
+	DestroyRoomInterval = 3600
 )

@@ -3,7 +3,25 @@ package client
 import (
 	"common/msg"
 	"github.com/name5566/leaf/log"
+	"time"
 )
+
+func init() {
+	msg.Processor.SetHandler(&msg.L2C_Login{}, handleLogin)
+	msg.Processor.SetHandler(&msg.F2C_CheckLogin{}, handleCheckLogin)
+	msg.Processor.SetHandler(&msg.F2C_CreateUser{}, handleCreateUser)
+	msg.Processor.SetHandler(&msg.F2C_EnterRoom{}, handleEnterRoom)
+	msg.Processor.SetHandler(&msg.F2C_LeaveRoom{}, handleLeaveRoom)
+	msg.Processor.SetHandler(&msg.F2C_SendMsg{}, handleSendMsg)
+	msg.Processor.SetHandler(&msg.F2C_MsgList{}, handleMsgList)
+}
+
+func showMsgList(msgList []*msg.ChatMsg) {
+	for _, msg := range msgList {
+		strTime := time.Unix(msg.MsgTime, 0).Format("2006-01-02 15:04:05")
+		log.Release("%v : %v room: %v", strTime, msg.RoomName, string(msg.MsgContent))
+	}
+}
 
 func handleLogin(args []interface{}) {
 	recvMsg := args[0].(*msg.L2C_Login)
@@ -32,7 +50,7 @@ func handleCheckLogin(args []interface{}) {
 		userData.UserId = recvMsg.UserId
 		userData.UserName = recvMsg.UserName
 
-		log.Release("%v login success", userData.AccountName)
+		log.Release("%v(%v) login and create user success", userData.UserName, userData.UserId)
 	} else {
 		userData.UserName = userData.AccountName
 
@@ -51,15 +69,42 @@ func handleCreateUser(args []interface{}) {
 
 	userData.UserId = recvMsg.UserId
 
-	log.Release("%v login and create user success", userData.AccountName)
+	log.Release("%v(%v) login and create user success", userData.UserName, userData.UserId)
 }
 
 func handleEnterRoom(args []interface{}) {
 	recvMsg := args[0].(*msg.F2C_EnterRoom)
 	if recvMsg.Err != "" {
-		log.Error("enter room is error: %v", recvMsg.Err)
+		log.Error("enter %v room is error: %v", recvMsg.RoomName, recvMsg.Err)
 		return
 	}
 
-	log.Release("%v user enter %v room success", userData.UserName, enterRoomName)
+	log.Release("you success enter %v room", recvMsg.RoomName)
+
+	showMsgList(recvMsg.MsgList)
+}
+
+func handleLeaveRoom(args []interface{}) {
+	recvMsg := args[0].(*msg.F2C_LeaveRoom)
+	if recvMsg.Err != "" {
+		log.Error("leave %v room is error: %v", recvMsg.RoomName, recvMsg.Err)
+		return
+	}
+
+	log.Release("you success leave %v room", recvMsg.RoomName)
+}
+
+func handleSendMsg(args []interface{}) {
+	recvMsg := args[0].(*msg.F2C_SendMsg)
+	if recvMsg.Err != "" {
+		log.Error("send msg is error: %v", recvMsg.Err)
+		return
+	}
+
+	log.Release("send msg is success")
+}
+
+func handleMsgList(args []interface{}) {
+	recvMsg := args[0].(*msg.F2C_MsgList)
+	showMsgList(recvMsg.MsgList)
 }

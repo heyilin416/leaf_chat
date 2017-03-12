@@ -2,7 +2,6 @@ package internal
 
 import (
 	"common/msg"
-	lmsg "loginServer/msg"
 	"github.com/name5566/leaf/gate"
 	"github.com/name5566/leaf/cluster"
 	"loginServer/db/mongodb/accountDB"
@@ -12,7 +11,7 @@ import (
 )
 
 func init() {
-	lmsg.Processor.SetHandler(&msg.C2L_Login{}, handleLogin)
+	msg.Processor.SetHandler(&msg.C2L_Login{}, handleLogin)
 }
 
 func handleLogin(args []interface{}) {
@@ -44,20 +43,22 @@ func handleLogin(args []interface{}) {
 		return
 	}
 
-	frontAddr, err := cluster.Call1("world", "GetBestFrontInfo", accountData.Id)
+	results, err := cluster.CallN("world", "GetBestFrontInfo", accountData.Id)
 	if err != nil {
 		sendErrFunc(err.Error())
 		return
 	}
 
-	token, err := tokenDB.Create(accountData.Id)
+	frontName := results[0].(string)
+	frontAddr := results[1].(string)
+	token, err := tokenDB.Create(accountData.Id, frontName)
 	if err != nil {
 		sendErrFunc(err.Error())
 		return
 	}
 
 	sendMsg.Id = accountData.Id
-	sendMsg.FrontAddr = frontAddr.(string)
+	sendMsg.FrontAddr = frontAddr
 	sendMsg.Token = token
 	agent.WriteMsg(sendMsg)
 }

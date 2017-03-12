@@ -10,22 +10,23 @@ import (
 type Data struct {
 	Token     bson.ObjectId `bson:"_id"`
 	AccountId bson.ObjectId
+	FrontName string
 }
 
 func getCollection(session *lmongodb.Session) *mgo.Collection {
 	return session.DB("login").C("token")
 }
 
-func Create(accountId bson.ObjectId) (token bson.ObjectId, err error) {
+func Create(accountId bson.ObjectId, frontName string) (token bson.ObjectId, err error) {
 	session := mongodb.Context.Ref()
 	defer mongodb.Context.UnRef(session)
 
 	token = bson.NewObjectId()
-	data := &Data{Token: token, AccountId: accountId}
+	data := &Data{Token: token, AccountId: accountId, FrontName: frontName}
 	return token, getCollection(session).Insert(data)
 }
 
-func Check(token bson.ObjectId) (accountId bson.ObjectId, err error) {
+func Check(token bson.ObjectId, frontName string) (accountId bson.ObjectId, err error) {
 	session := mongodb.Context.Ref()
 	defer mongodb.Context.UnRef(session)
 
@@ -33,8 +34,10 @@ func Check(token bson.ObjectId) (accountId bson.ObjectId, err error) {
 	collection := getCollection(session)
 	err = collection.FindId(token).One(result)
 	if err == nil {
-		accountId = result.AccountId
 		collection.RemoveId(token)
+		if result.FrontName == frontName {
+			accountId = result.AccountId
+		}
 	}
 	return
 }

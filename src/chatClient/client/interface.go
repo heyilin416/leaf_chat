@@ -11,7 +11,6 @@ import (
 
 var (
 	userData      = UserData{}
-	enterRoomName string
 )
 
 type UserData struct {
@@ -23,13 +22,15 @@ type UserData struct {
 }
 
 func init() {
-	skeleton.RegisterCommand("login", "login account: input name and passward", login)
-	skeleton.RegisterCommand("enterRoom", "enter room: input room name", enterRoom)
+	skeleton.RegisterCommand("login", "login account: input accountName, passward", login)
+	skeleton.RegisterCommand("enterRoom", "enter room: input roomName", enterRoom)
+	skeleton.RegisterCommand("leaveRoom", "enter room: input roomName", leaveRoom)
+	skeleton.RegisterCommand("sendMsg", "send msg to room: input roomName, msgContent", sendMsg)
 }
 
 func login(args []interface{}) (ret interface{}, err error) {
 	ret = ""
-	if len(args) < 3 {
+	if len(args) < 2 {
 		err = errors.New("args len is less than 2")
 		return
 	}
@@ -49,7 +50,7 @@ func login(args []interface{}) (ret interface{}, err error) {
 
 func enterRoom(args []interface{}) (ret interface{}, err error) {
 	ret = ""
-	if len(args) < 2 {
+	if len(args) < 1 {
 		err = errors.New("args len is less than 1")
 		return
 	}
@@ -60,8 +61,46 @@ func enterRoom(args []interface{}) (ret interface{}, err error) {
 	}
 
 	roomName := args[0].(string)
-	enterRoomName = roomName
 	msg := &msg.C2F_EnterRoom{RoomName: roomName}
 	Client.WriteMsg(msg)
 	return
 }
+
+func leaveRoom(args []interface{}) (ret interface{}, err error) {
+	ret = ""
+	if len(args) < 1 {
+		err = errors.New("args len is less than 1")
+		return
+	}
+
+	if Client == nil {
+		err = errors.New("net is disconnect, please input login cmd")
+		return
+	}
+
+	roomName := args[0].(string)
+	msg := &msg.C2F_LeaveRoom{RoomName: roomName}
+	Client.WriteMsg(msg)
+	return
+}
+
+func sendMsg(args []interface{}) (ret interface{}, err error) {
+	ret = ""
+	if len(args) < 2 {
+		err = errors.New("args len is less than 2")
+		return
+	}
+
+	if Client == nil {
+		err = errors.New("net is disconnect, please input login cmd")
+		return
+	}
+
+	roomName := args[0].(string)
+	msgContent := args[1].(string)
+	msgContent = fmt.Sprintf("%v say: %v", userData.UserName, msgContent)
+	msg := &msg.C2F_SendMsg{RoomName: roomName, Msg: []byte(msgContent)}
+	Client.WriteMsg(msg)
+	return
+}
+

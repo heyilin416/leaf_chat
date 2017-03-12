@@ -6,6 +6,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"github.com/name5566/leaf/gate"
 	"github.com/name5566/leaf/log"
+	"common/msg"
 )
 
 var (
@@ -20,8 +21,6 @@ func handleRpc(id interface{}, f interface{}) {
 }
 
 func init() {
-	skeleton.RegisterChanRPC("NewAgent", NewAgent)
-	skeleton.RegisterChanRPC("CloseAgent", CloseAgent)
 	skeleton.RegisterChanRPC("KickAccount", KickAccount)
 	skeleton.RegisterChanRPC("AccountOnline", AccountOnline)
 	skeleton.RegisterChanRPC("AccountOffline", AccountOffline)
@@ -31,17 +30,7 @@ func init() {
 	handleRpc("GetFrontInfo", GetFrontInfo)
 	handleRpc("AddClusterClient", AddClusterClient)
 	handleRpc("RemoveClusterClient", RemoveClusterClient)
-}
-
-func NewAgent(args []interface{}) {
-	clientCount += 1
-	cluster.Go("world", "UpdateFrontInfo", conf.Server.ServerName, clientCount)
-}
-
-func CloseAgent(args []interface{}) error {
-	clientCount -= 1
-	cluster.Go("world", "UpdateFrontInfo", conf.Server.ServerName, clientCount)
-	return nil
+	handleRpc("BroadcastChatMsg", BroadcastChatMsg)
 }
 
 func KickAccount(args []interface{}) {
@@ -60,6 +49,10 @@ func AccountOnline(args []interface{}) (interface{}, error) {
 		return false, nil
 	} else {
 		accountAgentMap[accountId] = agent
+
+		clientCount += 1
+		cluster.Go("world", "UpdateFrontInfo", conf.Server.ServerName, clientCount)
+
 		log.Debug("%v account is online", accountId)
 		return true, nil
 	}
@@ -71,6 +64,10 @@ func AccountOffline(args []interface{}) {
 	oldAgent, ok := accountAgentMap[accountId]
 	if ok && agent == oldAgent {
 		delete(accountAgentMap, accountId)
+
+		clientCount -= 1
+		cluster.Go("world", "UpdateFrontInfo", conf.Server.ServerName, clientCount)
+
 		log.Debug("%v account is offline", accountId)
 	}
 }
@@ -106,4 +103,15 @@ func AddClusterClient(args []interface{}) {
 func RemoveClusterClient(args []interface{}) {
 	serverName := args[0].(string)
 	cluster.RemoveClient(serverName)
+}
+
+func BroadcastChatMsg(args []interface{}) {
+	userIds := args[0].([]bson.ObjectId)
+	chatMsg := args[1].(msg.ChatMsg)
+	for _, userId := range userIds {
+		if agent, ok := userAgentMap[userId]; ok {
+			sendMsg := &msg.F2C_MsgList{MsgList: []*msg.ChatMsg{&chatMsg}}
+			agent.WriteMsg(sendMsg)
+		}
+	}
 }

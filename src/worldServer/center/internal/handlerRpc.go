@@ -104,7 +104,7 @@ func CloseServerAgent(args []interface{}) {
 	}
 }
 
-func GetBestFrontInfo(args []interface{}) (addr interface{}, err error) {
+func GetBestFrontInfo(args []interface{}) ([]interface{}, error) {
 	accountId := args[0].(bson.ObjectId)
 
 	var ok bool
@@ -119,13 +119,12 @@ func GetBestFrontInfo(args []interface{}) (addr interface{}, err error) {
 	}
 
 	if frontInfo == nil {
-		err = errors.New("No front server to alloc")
+		return []interface{}{}, errors.New("No front server to alloc")
 	} else {
-		addr = frontInfo.clientAddr
 		accountFrontMap[accountId] = frontInfo
 		log.Debug("%v account ask front info", accountId)
+		return []interface{}{frontInfo.serverName, frontInfo.clientAddr}, nil
 	}
-	return
 }
 
 func UpdateFrontInfo(args []interface{}) {
@@ -173,11 +172,14 @@ func GetRoomInfo(args []interface{}) (serverName interface{}, err error) {
 }
 
 func DestroyRoom(args []interface{}) {
-	roomName := args[0].(string)
-	if _, ok := roomInfoMap[roomName]; ok {
-		delete(roomInfoMap, roomName)
-		log.Debug("%v room is destroy", roomName)
+	roomNames := args[0].([]string)
+	for _, roomName := range roomNames {
+		if _, ok := roomInfoMap[roomName]; ok {
+			delete(roomInfoMap, roomName)
+
+		}
 	}
+	log.Debug("%v rooms is destroy", roomNames)
 }
 
 func AccountOffline(args []interface{}) {

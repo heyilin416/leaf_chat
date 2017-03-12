@@ -16,6 +16,12 @@ var (
 	LenMsgLen              = 2
 	LittleEndian           = false
 
+	// agent conf
+	AgentGoLen              = 50
+	AgentTimerDispatcherLen = 50
+	AgentAsynCallLen        = 50
+	AgentChanRPCLen         = 50
+
 	// skeleton conf
 	GoLen              = 10000
 	TimerDispatcherLen = 10000

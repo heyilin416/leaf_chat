@@ -2,12 +2,34 @@ package msg
 
 import (
 	"gopkg.in/mgo.v2/bson"
+	"github.com/name5566/leaf/network/json"
 )
+
+var (
+	Processor = json.NewProcessor()
+)
+
+func init() {
+	Processor.Register(&C2L_Login{})
+	Processor.Register(&L2C_Login{})
+	Processor.Register(&C2F_CheckLogin{})
+	Processor.Register(&F2C_CheckLogin{})
+	Processor.Register(&C2F_CreateUser{})
+	Processor.Register(&F2C_CreateUser{})
+	Processor.Register(&C2F_EnterRoom{})
+	Processor.Register(&F2C_EnterRoom{})
+	Processor.Register(&C2F_LeaveRoom{})
+	Processor.Register(&F2C_LeaveRoom{})
+	Processor.Register(&C2F_SendMsg{})
+	Processor.Register(&F2C_SendMsg{})
+	Processor.Register(&F2C_MsgList{})
+}
 
 type ChatMsg struct {
 	RoomName   string
+	UserId 	   bson.ObjectId
 	MsgTime    int64
-	MsgContent string
+	MsgContent []byte
 }
 
 type C2L_Login struct {
@@ -46,8 +68,9 @@ type C2F_EnterRoom struct {
 }
 
 type F2C_EnterRoom struct {
-	Err     string
-	MsgList []*ChatMsg
+	Err      string
+	RoomName string
+	MsgList  []*ChatMsg
 }
 
 type C2F_LeaveRoom struct {
@@ -55,11 +78,13 @@ type C2F_LeaveRoom struct {
 }
 
 type F2C_LeaveRoom struct {
-	Err string
+	Err      string
+	RoomName string
 }
 
 type C2F_SendMsg struct {
-	Msg string
+	RoomName string
+	Msg      []byte
 }
 
 type F2C_SendMsg struct {

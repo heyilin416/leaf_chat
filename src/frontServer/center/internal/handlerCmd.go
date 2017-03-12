@@ -11,7 +11,7 @@ func init() {
 
 func tickAccount(args []interface{}) (ret interface{}, err error) {
 	ret = ""
-	if len(args) < 2 {
+	if len(args) < 1 {
 		err = errors.New("args len is less than 1")
 		return
 	}
