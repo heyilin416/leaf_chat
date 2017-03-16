@@ -50,7 +50,7 @@ func handleCheckLogin(args []interface{}) {
 		userData.UserId = recvMsg.UserId
 		userData.UserName = recvMsg.UserName
 
-		log.Release("%v(%v) login and create user success", userData.UserName, userData.UserId)
+		log.Release("%v(%v) login user success", userData.UserName, userData.UserId)
 	} else {
 		userData.UserName = userData.AccountName
 

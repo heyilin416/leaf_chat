@@ -10,6 +10,6 @@ func Init() {
 	gob.Register(bson.NewObjectId())
 	gob.Register([]bson.ObjectId{})
 	gob.Register(map[string]string{})
-	gob.Register(msg.ChatMsg{})
+	gob.Register(&msg.ChatMsg{})
 	gob.Register([]*msg.ChatMsg{})
 }

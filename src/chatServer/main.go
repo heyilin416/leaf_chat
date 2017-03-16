@@ -8,6 +8,8 @@ import (
 	"os"
 	"github.com/name5566/leaf/log"
 	"chatServer/center"
+	"chatServer/room"
+	"github.com/name5566/leaf/module"
 )
 
 func main() {
@@ -32,7 +34,7 @@ func main() {
 
 	common.Init()
 
-	leaf.Run(
-		center.Module,
-	)
+	modules := []module.Module{center.Module}
+	modules = append(modules, room.CreateModules()...)
+	leaf.Run(modules...)
 }

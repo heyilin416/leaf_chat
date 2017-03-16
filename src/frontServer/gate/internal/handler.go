@@ -34,7 +34,7 @@ func onAgentDestroy(agent gate.Agent)() {
 
 		serverRoomMap := userData.GetServerRoomMap()
 		for serverName, roomNames := range serverRoomMap {
-			cluster.Go(serverName, "LeaveRoom", userData.Id, roomNames, true)
+			cluster.Go(serverName, "LeaveRooms", roomNames, userData.Id)
 		}
 
 		cluster.Go("world", "AccountOffline", userData.AccountId)
@@ -142,7 +142,7 @@ func handleEnterRoom(args []interface{}) {
 	ret, err := cluster.Call1("world", "GetRoomInfo", recvMsg.RoomName)
 	if err == nil {
 		serverName = ret.(string)
-		msgList, err = cluster.Call1(serverName, "EnterRoom", userData.Id, conf.Server.ServerName, recvMsg.RoomName)
+		msgList, err = cluster.Call1(serverName, "EnterRoom", recvMsg.RoomName, userData.Id, conf.Server.ServerName)
 	}
 
 	if err == nil {
@@ -179,7 +179,7 @@ func handleLeaveRoom(args []interface{}) {
 		return
 	}
 
-	err := cluster.Call0(serverName, "LeaveRoom", userData.Id, []string{recvMsg.RoomName}, false)
+	err := cluster.Call0(serverName, "LeaveRoom", recvMsg.RoomName, userData.Id)
 	if err == nil {
 		userData.RemoveRoom(recvMsg.RoomName)
 	} else {
@@ -201,7 +201,7 @@ func handleSendMsg(args []interface{}) {
 		return
 	}
 
-	err := cluster.Call0(serverName, "SendMsg", userData.UserData.Id, recvMsg.RoomName, recvMsg.Msg)
+	err := cluster.Call0(serverName, "SendMsg", recvMsg.RoomName, userData.UserData.Id, recvMsg.Msg)
 	if err != nil {
 		sendMsg.Err = err.Error()
 	}

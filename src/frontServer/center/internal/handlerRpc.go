@@ -107,10 +107,10 @@ func RemoveClusterClient(args []interface{}) {
 
 func BroadcastChatMsg(args []interface{}) {
 	userIds := args[0].([]bson.ObjectId)
-	chatMsg := args[1].(msg.ChatMsg)
+	chatMsg := args[1].(*msg.ChatMsg)
 	for _, userId := range userIds {
 		if agent, ok := userAgentMap[userId]; ok {
-			sendMsg := &msg.F2C_MsgList{MsgList: []*msg.ChatMsg{&chatMsg}}
+			sendMsg := &msg.F2C_MsgList{MsgList: []*msg.ChatMsg{chatMsg}}
 			agent.WriteMsg(sendMsg)
 		}
 	}
