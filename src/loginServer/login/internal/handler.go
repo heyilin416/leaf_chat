@@ -7,17 +7,13 @@ import (
 	"github.com/name5566/leaf/chanrpc"
 )
 
-func handleRpc(id interface{}, f interface{}, isExtRet bool) {
+func handleRpc(id interface{}, f interface{}, fType int) {
 	cluster.SetRoute(id, ChanRPC)
-	if isExtRet {
-		ChanRPC.RegisterExtRet(id, f)
-	} else {
-		ChanRPC.Register(id, f)
-	}
+	ChanRPC.RegisterFromType(id, f, fType)
 }
 
 func init() {
-	handleRpc("CheckToken", CheckToken, true)
+	handleRpc("CheckToken", CheckToken, chanrpc.FuncExtRet)
 }
 
 func CheckToken(args []interface{}) {
